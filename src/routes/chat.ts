@@ -24,8 +24,19 @@ interface Billing {
   model: Model;
 }
 
+// Срабатывает, если клиент закрыл соединение раньше, чем мы закончили ответ
+// (например, SDK оборвал запрос по таймауту): генерацию останавливаем и не списываем.
+function clientGone(reply: FastifyReply): AbortSignal {
+  const controller = new AbortController();
+  reply.raw.on("close", () => {
+    if (!reply.raw.writableEnded) controller.abort();
+  });
+  return controller.signal;
+}
+
 export async function chatRoutes(app: FastifyInstance, { providers }: Options) {
   app.post("/v1/chat/completions", async (request, reply) => {
+    const signal = clientGone(reply);
     const apiKey = await authenticate(request);
     if (!apiKey) {
       return reply
@@ -80,9 +91,9 @@ export async function chatRoutes(app: FastifyInstance, { providers }: Options) {
     };
 
     if (body.stream) {
-      return streamCompletion(request, reply, providers, body, billing);
+      return streamCompletion(request, reply, providers, body, billing, signal);
     }
-    return completion(request, reply, providers, body, billing);
+    return completion(request, reply, providers, body, billing, signal);
   });
 }
 
@@ -92,6 +103,7 @@ async function streamCompletion(
   providers: Provider[],
   body: ChatRequest,
   billing: Billing,
+  signal: AbortSignal,
 ) {
   reply.hijack();
   const res = reply.raw;
@@ -113,6 +125,7 @@ async function streamCompletion(
       billing.model.upstreamModel,
       onDelta,
       request.log,
+      signal,
     );
     const cost = await chargeUsage(request, billing, provider, usage, "ok");
 
@@ -128,11 +141,9 @@ async function streamCompletion(
     );
     res.end(SSE_DONE);
   } catch (err) {
-    request.log.error(
-      { requestId: billing.requestId, err: String(err) },
-      "completion failed",
-    );
+    logFailure(request, billing, err, signal);
     await chargeFailed(request, billing, body);
+    if (signal.aborted) return;
 
     if (!started) {
       res.writeHead(502, { "content-type": "application/json" });
@@ -151,6 +162,7 @@ async function completion(
   providers: Provider[],
   body: ChatRequest,
   billing: Billing,
+  signal: AbortSignal,
 ) {
   let content = "";
   try {
@@ -160,6 +172,7 @@ async function completion(
       billing.model.upstreamModel,
       (text) => (content += text),
       request.log,
+      signal,
     );
     const cost = await chargeUsage(request, billing, provider, usage, "ok");
     return reply.send({
@@ -177,14 +190,27 @@ async function completion(
       usage: toOpenAiUsage(usage, cost),
     });
   } catch (err) {
-    request.log.error(
-      { requestId: billing.requestId, err: String(err) },
-      "completion failed",
-    );
+    logFailure(request, billing, err, signal);
     await chargeFailed(request, billing, body);
     return reply
       .code(502)
       .send(apiError("Upstream provider error", "upstream_error"));
+  }
+}
+
+function logFailure(
+  request: FastifyRequest,
+  billing: Billing,
+  err: unknown,
+  signal: AbortSignal,
+) {
+  if (signal.aborted) {
+    request.log.warn({ requestId: billing.requestId }, "client disconnected");
+  } else {
+    request.log.error(
+      { requestId: billing.requestId, err: String(err) },
+      "completion failed",
+    );
   }
 }
 
