@@ -47,6 +47,8 @@ model Deposit {
   amount    Float
   createdAt DateTime     @default(now())
   org       Organization @relation(fields: [orgId], references: [id])
+
+  @@index([orgId])
 }
 
 // Одна строка = одно списание за запрос
@@ -65,4 +67,8 @@ model Usage {
   createdAt        DateTime     @default(now())
   org              Organization @relation(fields: [orgId], references: [id])
   apiKey           ApiKey       @relation(fields: [apiKeyId], references: [id])
+
+  // Покрывающий индекс: баланс (SUM(cost) по orgId) и расход по ключам
+  // (GROUP BY apiKeyId) считаются без чтения самих строк
+  @@index([orgId, apiKeyId, cost])
 }

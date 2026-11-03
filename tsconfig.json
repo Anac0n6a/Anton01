@@ -10,5 +10,5 @@
     "noEmit": true,
     "types": ["node"]
   },
-  "include": ["src", "prisma", "sdk", "test"]
+  "include": ["src", "prisma", "sdk", "test", "scripts"]
 }
