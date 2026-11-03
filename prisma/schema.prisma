@@ -1,0 +1,68 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id          String    @id
+  name        String
+  // Сколько организация может уйти в минус, ₽
+  creditLimit Float     @default(0)
+  createdAt   DateTime  @default(now())
+  keys        ApiKey[]
+  deposits    Deposit[]
+  usages      Usage[]
+}
+
+model ApiKey {
+  id        String       @id
+  orgId     String
+  name      String
+  key       String       @unique
+  createdAt DateTime     @default(now())
+  revokedAt DateTime?
+  org       Organization @relation(fields: [orgId], references: [id])
+  usages    Usage[]
+}
+
+// Каталог моделей, который видят клиенты в GET /v1/models
+model Model {
+  id               String  @id
+  title            String
+  upstreamModel    String
+  // Цена за 1000 токенов, ₽
+  priceInputPer1k  Float
+  priceOutputPer1k Float
+  maxOutputTokens  Int
+  active           Boolean @default(true)
+}
+
+model Deposit {
+  id        Int          @id @default(autoincrement())
+  orgId     String
+  amount    Float
+  createdAt DateTime     @default(now())
+  org       Organization @relation(fields: [orgId], references: [id])
+}
+
+// Одна строка = одно списание за запрос
+model Usage {
+  id               Int          @id @default(autoincrement())
+  requestId        String
+  orgId            String
+  apiKeyId         String
+  model            String
+  provider         String
+  promptTokens     Int
+  completionTokens Int
+  cost             Float
+  // ok | error
+  status           String
+  createdAt        DateTime     @default(now())
+  org              Organization @relation(fields: [orgId], references: [id])
+  apiKey           ApiKey       @relation(fields: [apiKeyId], references: [id])
+}

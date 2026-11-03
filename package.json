@@ -1,0 +1,28 @@
+{
+  "name": "api-gateway-task",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "setup": "prisma db push && tsx prisma/seed.ts",
+    "dev": "tsx watch src/server.ts",
+    "start": "tsx src/server.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "sdk:example": "tsx sdk/example.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "5.22.0",
+    "dotenv": "16.4.5",
+    "fastify": "4.28.1"
+  },
+  "devDependencies": {
+    "@types/node": "20.17.6",
+    "prisma": "5.22.0",
+    "tsx": "4.19.2",
+    "typescript": "5.6.3",
+    "vitest": "2.1.8"
+  }
+}

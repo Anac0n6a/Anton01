@@ -1,0 +1,10 @@
+91.203.11.40 - - [21/Oct/2026:18:38:42 +0300] "POST /v1/chat/completions HTTP/1.1" 200 4097 "-" "openai-node/4.67.3" rt=1.900 upstream=10.12.3.17:3000 x-request-id=req-1f0a22c4
+62.113.104.7 - - [21/Oct/2026:18:39:21 +0300] "POST /v1/chat/completions HTTP/1.1" 200 5051 "-" "python-requests/2.32.3" rt=6.400 upstream=10.12.3.17:3000 x-request-id=req-77ab31d0
+185.71.66.12 - - [21/Oct/2026:18:40:09 +0300] "POST /v1/chat/completions HTTP/1.1" 200 7004 "-" "tunnel-sdk-js/1.4.2" rt=6.900 upstream=10.12.3.17:3000 x-request-id=req-8c3d5e17
+185.71.66.12 - - [21/Oct/2026:18:41:12 +0300] "POST /v1/chat/completions HTTP/1.1" 499 0 "-" "tunnel-sdk-js/1.4.2" rt=10.001 upstream=10.12.3.17:3000 x-request-id=req-a91c0f1e
+185.71.66.12 - - [21/Oct/2026:18:41:22 +0300] "POST /v1/chat/completions HTTP/1.1" 499 0 "-" "tunnel-sdk-js/1.4.2" rt=10.002 upstream=10.12.3.17:3000 x-request-id=req-b2d4e7a0
+185.71.66.12 - - [21/Oct/2026:18:41:41 +0300] "POST /v1/chat/completions HTTP/1.1" 200 6844 "-" "tunnel-sdk-js/1.4.2" rt=19.183 upstream=10.12.3.17:3000 x-request-id=req-c7e1f392
+91.203.11.40 - - [21/Oct/2026:18:42:19 +0300] "POST /v1/chat/completions HTTP/1.1" 200 5573 "-" "openai-node/4.67.3" rt=9.200 upstream=10.12.3.17:3000 x-request-id=req-4b5c6d7e
+185.71.66.12 - - [21/Oct/2026:18:58:51 +0300] "POST /v1/chat/completions HTTP/1.1" 200 6023 "-" "tunnel-sdk-js/1.4.2" rt=7.600 upstream=10.12.3.17:3000 x-request-id=req-9e8f7a6b
+62.113.104.7 - - [21/Oct/2026:19:02:09 +0300] "POST /v1/chat/completions HTTP/1.1" 200 3053 "-" "python-requests/2.32.3" rt=4.100 upstream=10.12.3.17:3000 x-request-id=req-2a3b4c5d
+185.71.66.12 - - [21/Oct/2026:19:05:47 +0300] "POST /v1/chat/completions HTTP/1.1" 200 4211 "-" "tunnel-sdk-js/1.4.2" rt=16.808 upstream=10.12.3.17:3000 x-request-id=req-d5e8c2b6
