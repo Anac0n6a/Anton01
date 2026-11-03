@@ -125,7 +125,7 @@ async function streamCompletion(
       billing.model.upstreamModel,
       onDelta,
       request.log,
-      signal,
+      { signal, beforeFallback: () => !started },
     );
     const cost = await chargeUsage(request, billing, provider, usage, "ok");
 
@@ -151,7 +151,13 @@ async function streamCompletion(
         JSON.stringify(apiError("Upstream provider error", "upstream_error")),
       );
     } else {
-      res.end();
+      // Заголовки уже ушли, статус не поменять: сообщаем об ошибке событием
+      // в формате OpenAI и закрываем поток без [DONE], чтобы клиент видел обрыв
+      res.end(
+        `data: ${JSON.stringify(
+          apiError("Upstream provider error mid-stream", "upstream_error"),
+        )}\n\n`,
+      );
     }
   }
 }
@@ -172,7 +178,14 @@ async function completion(
       billing.model.upstreamModel,
       (text) => (content += text),
       request.log,
-      signal,
+      {
+        signal,
+        // Клиенту ещё ничего не отправлено: кусок упавшего провайдера выбрасываем
+        beforeFallback: () => {
+          content = "";
+          return true;
+        },
+      },
     );
     const cost = await chargeUsage(request, billing, provider, usage, "ok");
     return reply.send({
