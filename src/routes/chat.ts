@@ -195,7 +195,7 @@ async function chargeUsage(
   usage: Usage,
   status: "ok" | "error",
 ) {
-  const cost = calcCost(billing.model, usage);
+  const cost = status === "ok" ? calcCost(billing.model, usage) : 0;
   await charge({
     requestId: billing.requestId,
     orgId: billing.orgId,
@@ -213,8 +213,9 @@ async function chargeUsage(
   return cost;
 }
 
-// Сколько провайдер успел сгенерировать до ошибки, мы не знаем,
-// поэтому списываем по максимуму — так баланс точно не уйдёт в минус
+// Неудачный запрос бесплатен: клиент не получил ответа целиком.
+// Строку со статусом error и нулевой суммой пишем, чтобы запрос был виден
+// в кабинете и в отчётах.
 async function chargeFailed(
   request: FastifyRequest,
   billing: Billing,
@@ -222,7 +223,7 @@ async function chargeFailed(
 ) {
   const usage: Usage = {
     promptTokens: estimateTokens(JSON.stringify(body.messages)),
-    completionTokens: body.max_tokens ?? billing.model.maxOutputTokens,
+    completionTokens: 0,
   };
   await chargeUsage(request, billing, "none", usage, "error");
 }
